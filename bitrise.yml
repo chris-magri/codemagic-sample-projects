@@ -1,0 +1,46 @@
+---
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+workflows:
+  maui-ios-simulator-build:
+    description: Build and run .NET MAUI project for iOS Simulator
+    envs:
+      - DOTNET_PATH: $BITRISE_SOURCE_DIR/dotnet
+      - DOTNET: $BITRISE_SOURCE_DIR/dotnet/dotnet
+      - XCODE_DEVELOPER_DIR: "/Applications/Xcode.app/Contents/Developer"
+    steps:
+      - script:
+          title: Install .NET SDK
+          inputs:
+            - content: |
+                wget https://dot.net/v1/dotnet-install.sh
+                chmod +x dotnet-install.sh
+                ./dotnet-install.sh --channel 7.0 --install-dir $DOTNET_PATH
+
+      - script:
+          title: Add NuGet source
+          inputs:
+            - content: |
+                $DOTNET nuget add source https://www.myget.org/F/caliburn-micro-builds/api/v3/index.json --name CaliburnNuGet.org
+
+      - script:
+          title: Install MAUI workloads
+          inputs:
+            - content: |
+                $DOTNET nuget locals all --clear
+                $DOTNET workload restore
+                $DOTNET workload install maui-android maui-ios \
+                --source https://aka.ms/dotnet7/nuget/index.json \
+                --source https://api.nuget.org/v3/index.json
+
+      - script:
+          title: Build the app for iOS Simulator
+          inputs:
+            - content: |
+                cd MauiNet7_2
+                $DOTNET build -f net7.0-ios -c Debug -o ../artifacts
+
+      - deploy-to-bitrise-io:
+          inputs:
+            - deploy_path: "$BITRISE_SOURCE_DIR/artifacts/*.app"
