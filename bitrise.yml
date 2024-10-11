@@ -1,7 +1,10 @@
 ---
 format_version: '11'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
+meta:
+  bitrise.io:
+    stack: osx-xcode-16.0.x
+    machine_type_id: g2-m1.4core
 workflows:
   maui-ios-simulator-build:
     description: Build and run .NET MAUI project for iOS Simulator
@@ -38,7 +41,7 @@ workflows:
           title: Build the app for iOS Simulator
           inputs:
             - content: |
-                cd MauiNet7_2
+                cd ./MauiNet7_2
                 $DOTNET build -f net7.0-ios -c Debug -o ../artifacts
 
       - deploy-to-bitrise-io:
